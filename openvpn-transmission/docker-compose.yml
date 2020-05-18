@@ -1,0 +1,45 @@
+version: "2"
+
+services:
+  transmission:
+    image: haugene/transmission-openvpn:latest-armhf
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - "/dev/net/tun"
+    restart: always
+    ports:
+      - "9091:9091"
+      - "8888:8888"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /media/hdd/:/data
+    environment:
+      - OPENVPN_PROVIDER=PIA
+      - OPENVPN_USERNAME=youruser
+      - OPENVPN_PASSWORD=yourpass
+      - OPENVPN_CONFIG=DE Frankfurt
+      - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
+      - TRANSMISSION_UTP_ENABLED=false
+      - TRANSMISSION_SPEED_LIMIT_DOWN_ENABLED=false
+      - TRANSMISSION_RPC_ENABLED=true
+      - TRANSMISSION_RPC_USERNAME=transmission
+      - TRANSMISSION_RPC_PASSWORD=yourpass
+      - TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED=false
+      - TRANSMISSION_PEER_LIMIT_GLOBAL=500
+      - TRANSMISSION_PER_LIMIT_PER_TORRENT=500
+      - TRANSMISSION_RPC_WHITELIST:127.*.*.*,192.168.*.*,172.*.*.*,10.*.*.*
+      - LOCAL_NETWORK=192.168.0.1/16
+
+  proxy:
+    image: haugene/transmission-openvpn-proxy:latest-armhf
+    links:
+      - transmission
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro

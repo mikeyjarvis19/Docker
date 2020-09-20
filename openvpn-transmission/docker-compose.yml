@@ -33,7 +33,7 @@ services:
       - TRANSMISSION_INCOMPLETE_DIR_ENABLED=false
       - TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED=true
       - TRANSMISSION_IDLE_SEEDING_LIMIT=120
-      - LOCAL_NETWORK=192.168.0.1/16
+      - LOCAL_NETWORK=192.168.0.1/24
 
   proxy:
     image: haugene/transmission-openvpn-proxy:latest-armhf

@@ -2,7 +2,7 @@ version: "2"
 
 services:
   transmission:
-    image: haugene/transmission-openvpn:latest-armhf
+    image: haugene/transmission-openvpn:latest
     cap_add:
       - NET_ADMIN
     devices:

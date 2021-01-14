@@ -1,0 +1,15 @@
+  rclone_rclone:
+    image: rclone/rclone
+    container_name: rclone
+    restart: always
+    command: rcd --rc-web-gui --rc-addr :5572 --rc-user USERNAME --rc-pass PASSWORD
+    ports:
+      - "5572:5572"
+    volumes:
+      - /home/pi/rclone/config:/config/rclone
+      - /home/pi/rclone/logs:/logs
+      - /media/wd/videos:/data/wd/videos:shared
+    environment:
+      - PHP_TZ=Europe/London
+      - PUID=1000
+      - PGID=1000

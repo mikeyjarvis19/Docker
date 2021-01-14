@@ -6,7 +6,7 @@
     ports:
       - "5572:5572"
     volumes:
-      - /home/pi/rclone/config:/config/rclone
+      - /home/pi/synced/rclone/config:/config/rclone
       - /home/pi/rclone/logs:/logs
       - /media/wd/videos:/data/wd/videos:shared
     environment:

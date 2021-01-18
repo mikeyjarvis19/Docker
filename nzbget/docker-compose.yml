@@ -4,12 +4,12 @@ services:
     image: ghcr.io/linuxserver/nzbget
     container_name: nzbget
     environment:
-      - PUID=1000
-      - PGID=1000
+      - PUID=0
+      - PGID=0
       - TZ=Europe/London
     volumes:
       - /home/pi/synced/nzbget/config:/config
-      - /media/wd:/downloads
+      - /media/wd/nzbget-downloads:/downloads
     ports:
       - 6789:6789
     restart: unless-stopped

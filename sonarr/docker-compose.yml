@@ -4,14 +4,14 @@ services:
     image: ghcr.io/linuxserver/sonarr
     container_name: sonarr
     environment:
-      - PUID=1000
-      - PGID=1000
+      - PUID=0
+      - PGID=0
       - TZ=Europe/London
       - UMASK_SET=022 #optional
     volumes:
       - /home/pi/synced/sonarr/config:/config
-      - /media/wd/videos/TV\ Shows:/tv
-      - /path/to/downloadclient-downloads:/downloads
+      - /media/wd/videos/usenet/TV Shows:/tv
+      - /media/wd/nzbget-downloads/TV:/downloads/TV
     ports:
       - 8989:8989
     restart: unless-stopped

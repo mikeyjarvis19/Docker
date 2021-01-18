@@ -5,7 +5,7 @@ services:
     container_name: tautulli
     restart: unless-stopped
     volumes:
-      - /home/pi/tautulli:/config
+      - /home/pi/synced/tautulli:/config
     environment:
       - PUID=0
       - PGID=0

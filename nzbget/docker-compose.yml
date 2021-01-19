@@ -9,7 +9,7 @@ services:
       - TZ=Europe/London
     volumes:
       - /home/pi/synced/nzbget/config:/config
-      - /media/wd/nzbget-downloads:/downloads
+      - /media/wd/usenet:/data/usenet
     ports:
       - 6789:6789
     restart: unless-stopped

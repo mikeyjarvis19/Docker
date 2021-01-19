@@ -10,8 +10,7 @@ services:
       - UMASK_SET=022 #optional
     volumes:
       - /home/pi/synced/sonarr/config:/config
-      - /media/wd/videos/usenet/TV Shows:/tv
-      - /media/wd/nzbget-downloads/TV:/downloads/TV
+      - /media/wd:/data/
     ports:
       - 8989:8989
     restart: unless-stopped

@@ -2,7 +2,7 @@
     image: rclone/rclone
     container_name: rclone
     restart: always
-    command: rcd --rc-web-gui --rc-addr :5572 --rc-user USERNAME --rc-pass PASSWORD
+    command: rcd --rc-web-gui --rc-addr :5572 --rc-user USER --rc-pass PASSWORD --transfers 1
     ports:
       - "5572:5572"
     volumes:

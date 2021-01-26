@@ -16,7 +16,8 @@ services:
       - 8.8.4.4
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /media/hdd/:/data
+      - /media/wd/torrents/:/data
+      - /home/pi/synced/openvpn-transmission/:/config
     environment:
       - OPENVPN_PROVIDER=PIA
       - OPENVPN_USERNAME=youruser
@@ -33,14 +34,19 @@ services:
       - TRANSMISSION_INCOMPLETE_DIR_ENABLED=false
       - TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED=false
       - TRANSMISSION_IDLE_SEEDING_LIMIT=480
+      - TRANSMISSION_HOME=/config
       - LOCAL_NETWORK=192.168.0.0/24
       - PIA_OPENVPN_CONFIG_BUNDLE=openvpn
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+
 
   proxy:
     image: haugene/transmission-openvpn-proxy:latest-armhf
     links:
       - transmission
-    restart: always
+    restart: unless-stopped
     ports:
       - "8080:8080"
     volumes:

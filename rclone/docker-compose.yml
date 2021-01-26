@@ -2,12 +2,13 @@
     image: rclone/rclone
     container_name: rclone
     restart: always
-    command: rcd --rc-web-gui --rc-addr :5572 --rc-user USER --rc-pass PASSWORD --transfers 1
+    command: rcd --rc-web-gui --rc-addr :5572 --rc-user user --rc-pass pass --transfers 1 --cutoff-mode soft
     ports:
       - "5572:5572"
     volumes:
       - /home/pi/synced/rclone/config:/config/rclone
       - /media/wd/videos:/data/wd/videos:shared
+      - /media/hdd/videos:/data/hdd/videos:shared
       - /home/pi/synced:/data/synced
       - /home/pi/synced_backup:/data/synced_backup
     environment:

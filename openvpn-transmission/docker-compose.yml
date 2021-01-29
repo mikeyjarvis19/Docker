@@ -16,7 +16,7 @@ services:
       - 8.8.4.4
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /media/wd/torrents/:/data
+      - /media/wd:/data/
       - /home/pi/synced/openvpn-transmission/:/config
     environment:
       - OPENVPN_PROVIDER=PIA
@@ -35,6 +35,9 @@ services:
       - TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED=false
       - TRANSMISSION_IDLE_SEEDING_LIMIT=480
       - TRANSMISSION_HOME=/config
+      - TRANSMISSION_DOWNLOAD_DIR=/data/torrents/downloads
+      - TRANSMISSION_INCOMPLETE_DIR=/data/torrents/incomplete
+      - TRANSMISSION_WATCH_DIR=/data/torrents/blackhole
       - LOCAL_NETWORK=192.168.0.0/24
       - PIA_OPENVPN_CONFIG_BUNDLE=openvpn
       - PUID=1000

@@ -1,4 +1,3 @@
-
 rc_user="user"
 rc_pass="pass"
 json_fmt='{"main": {"BackupDir": "", "Transfers": 500}}'

@@ -1,8 +1,10 @@
+version: '3'
+services:
   rclone_rclone:
     image: rclone/rclone
     container_name: rclone
     restart: always
-    command: rcd --rc-web-gui --rc-addr :5572 --rc-user user --rc-pass pass --transfers 1 --cutoff-mode soft
+    command: rcd --rc-web-gui --rc-addr :5572 --rc-user user --rc-pass pass --transfers 1 --cutoff-mode soft --rc-web-gui-no-open-browser --rc-web-gui-update
     ports:
       - "5572:5572"
     volumes:

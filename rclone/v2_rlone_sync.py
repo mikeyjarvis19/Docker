@@ -9,16 +9,12 @@ RCLONE_USER = "user"
 RCLONE_PASS = "pass"
 
 
-def stop_containers():
-    containers_to_stop = [
-        "sonarr",
-        "radarr",
-        "tautulli",
-        "openvpn-transmission_transmission_1",
-    ]
+def stop_containers(containers_to_stop=None):
     logging.info("Stopping containers: %s", containers_to_stop)
     running_containers = CLIENT.containers.list()
     stopped_containers = []
+    if not containers_to_stop:
+        return stopped_containers
     for container in running_containers:
         if container.name in containers_to_stop:
             logging.info("Stopping container: %s", container.name)
@@ -70,6 +66,7 @@ def set_rclone_options(destination_remote, destination_folder, transfers=1):
         f"rclone rc options/set --json '{options}' "
         f"--rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
     )
+    print(command)
     return rclone_container.exec_run(command)
 
 
@@ -82,6 +79,7 @@ def rclone_sync(source_directory, destination_remote, destination_folder):
         }
     )
     command = f"rclone rc sync/sync --json '{command_json}' --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
+    print(command)
     rclone_container = CLIENT.containers.get("rclone")
     return rclone_container.exec_run(command)
 
@@ -111,13 +109,13 @@ def cancel_rclone_job(job_id):
 def poll_for_completion(job_id, stopped_containers, timeout=None):
     timeout_start = time.time()
     while not rclone_job_completed(job_id):
-        if time.time() < timeout_start + timeout:
-            print(f"Job {job_id} not done, checking again soon...")
-            time.sleep(10)
-        else:
-            print(f"Job {job_id} has timed out, cancelling...")
-            cancel_rclone_job(job_id)
-            break
+        print(f"Job {job_id} not done, checking again soon...")
+        time.sleep(10)
+        if timeout is not None:
+            if time.time() > timeout_start + timeout:
+                print(f"Job {job_id} has timed out, cancelling...")
+                cancel_rclone_job(job_id)
+                break
     else:
         print("Job done! Spinning up containers...")
     start_containers(stopped_containers)
@@ -128,10 +126,14 @@ def run_job(
     destination_remote,
     destination_directory,
     transfers=1,
-    timeout=0,
+    timeout=None,
+    containers_to_stop=None,
 ):
+    print(
+        f"Starting job, src: {source_directory}, dest: {destination_remote}:{destination_directory}, timeout: {timeout}"
+    )
     initial_transfers = get_rclone_options()["main"]["Transfers"]
-    stopped_containers = stop_containers()
+    stopped_containers = stop_containers(containers_to_stop)
     set_rclone_options(
         destination_remote,
         destination_directory,
@@ -141,20 +143,44 @@ def run_job(
         source_directory, destination_remote, destination_directory
     )
     job_id = json.loads(sync_result.output.decode()).get("jobid")
+    print(f"Running job: {job_id}")
     poll_for_completion(job_id, stopped_containers, timeout)
     set_rclone_options(
         destination_remote, destination_directory, transfers=initial_transfers
     )
 
 
+def calculate_time_until_cutoff():
+    now = datetime.datetime.now()
+    cutoff_hour = 9
+    cutoff_time = datetime.datetime(now.year, now.month, now.day, cutoff_hour)
+    time_delta = cutoff_time - now
+    return time_delta
+
+
 def main():
+    container_names = [
+        "sonarr",
+        "radarr",
+        "tautulli",
+        "openvpn-transmission_transmission_1",
+    ]
     run_job(
         "/data/synced",
         "encrypted_gdrive_1",
         "home_synced",
         transfers=4,
-        timeout=30,
+        containers_to_stop=container_names,
     )
+    seconds_until_cutoff = calculate_time_until_cutoff().seconds
+    run_job(
+        "/data/hdd/videos",
+        "encrypted_gdrive_1",
+        "hdd_videos",
+        transfers=1,
+        timeout=seconds_until_cutoff,
+    )
+
     print("DONE")
 
 

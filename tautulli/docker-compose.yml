@@ -7,8 +7,8 @@ services:
     volumes:
       - /home/pi/synced/tautulli:/config
     environment:
-      - PUID=0
-      - PGID=0
+      - PUID=1000
+      - PGID=1000
       - TZ=gb
     ports:
       - 8181:8181

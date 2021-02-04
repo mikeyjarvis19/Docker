@@ -18,6 +18,21 @@ hdd_videos:
   destination_remote: encrypted_gdrive_1
   destination_directory: hdd_videos
   transfers: 1
-  excludes:
-    - /home/pi/synced/plex
-    - /home/pi/synced/rclone
+
+wd_torrents_tv:
+  source_directory: /data/wd/torrents/tv
+  destination_remote: encrypted_gdrive_1
+  destination_directory: wd_torrents_tv
+  transfers: 1
+
+wd_torrents_movies:
+  source_directory: /data/wd/torrents/movies
+  destination_remote: encrypted_gdrive_1
+  destination_directory: wd_torrents_movies
+  transfers: 1
+
+wd_media:
+  source_directory: /data/wd/media
+  destination_remote: encrypted_gdrive_1
+  destination_directory: wd_media
+  transfers: 1

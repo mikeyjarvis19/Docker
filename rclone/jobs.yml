@@ -1,0 +1,23 @@
+home_synced:
+  source_directory: /data/synced
+  destination_remote: encrypted_gdrive_1
+  destination_directory: home_synced
+  transfers: 10
+  containers_to_stop:
+    - sonarr
+    - radarr
+    - tautulli
+    - openvpn-transmission_transmission_1
+    - sabnzbd
+  excludes:
+    - /home/pi/synced/plex
+    - /home/pi/synced/rclone
+
+hdd_videos:
+  source_directory: /data/hdd/videos
+  destination_remote: encrypted_gdrive_1
+  destination_directory: hdd_videos
+  transfers: 1
+  excludes:
+    - /home/pi/synced/plex
+    - /home/pi/synced/rclone

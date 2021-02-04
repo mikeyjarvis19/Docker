@@ -164,7 +164,7 @@ def read_yaml(jobs_yml_filename):
 
 
 def main():
-    jobs = read_yaml("jobs.yml")
+    jobs = read_yaml("/home/pi/Docker/rclone/jobs.yml")
     for job_name, job_inputs in jobs.items():
         seconds_until_cutoff = calculate_time_until_cutoff().seconds
         run_job(

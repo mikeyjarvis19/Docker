@@ -9,7 +9,7 @@ services:
       - "5572:5572"
     volumes:
       - /home/pi/synced/rclone/config:/config/rclone
-      - /media/wd/videos:/data/wd/videos:shared
+      - /media/wd:/data/wd:shared
       - /media/hdd/videos:/data/hdd/videos:shared
       - /home/pi/synced:/data/synced
       - /home/pi/synced_backup:/data/synced_backup

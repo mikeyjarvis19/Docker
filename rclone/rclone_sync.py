@@ -4,10 +4,42 @@ import datetime
 import json
 import time
 import yaml
+import requests
 
 CLIENT = docker.from_env()
-RCLONE_USER = "pi"
-RCLONE_PASS = "password"
+RCLONE_USER = "user"
+RCLONE_PASS = "pass"
+
+
+class PushoverNotifications:
+    def __init__(self, user_token, app_token):
+        self.url = "https://api.pushover.net/1/messages.json"
+        self.user_token = user_token
+        self.app_token = app_token
+
+    def send_notification(self, title, message):
+        data = {
+            "user": self.user_token,
+            "token": self.app_token,
+            "title": title,
+            "message": message,
+        }
+        response = requests.post(self.url, data=data)
+        logging.info(
+            f"Retrieved response code: '{response.status_code}' from '{self.url}'"
+        )
+        return response.status_code
+
+
+class JobResult:
+    def __init__(self, job_name, job_successful, job_error, job_timed_out):
+        self.job_name = job_name
+        self.job_successful = job_successful
+        self.job_error = job_error
+        self.job_timed_out = job_timed_out
+
+    def __repr__(self):
+        return self.job_name
 
 
 def stop_containers(containers_to_stop=None):
@@ -27,11 +59,12 @@ def stop_containers(containers_to_stop=None):
 
 def start_containers(containers_to_start):
     logging.info("Starting containers: %s", containers_to_start)
-    for container_name in containers_to_start:
-        container = CLIENT.containers.get(container_name)
-        logging.info("Starting container: %s", container_name)
-        print("Starting container:", container_name)
-        container.start()
+    if containers_to_start:
+        for container_name in containers_to_start:
+            container = CLIENT.containers.get(container_name)
+            logging.info("Starting container: %s", container_name)
+            print("Starting container:", container_name)
+            container.start()
 
 
 def get_rclone_options():
@@ -83,7 +116,7 @@ def rclone_sync(source_directory, destination_remote, destination_folder):
     return rclone_container.exec_run(command)
 
 
-def rclone_job_completed(job_id):
+def get_job_status(job_id):
     command_json = '{"jobid": %s}' % job_id
     command = (
         f"rclone rc --json '{command_json}' job/status "
@@ -91,7 +124,7 @@ def rclone_job_completed(job_id):
     )
     rclone_container = CLIENT.containers.get("rclone")
     output = json.loads(rclone_container.exec_run(command).output.decode())
-    return output.get("finished")
+    return output
 
 
 def cancel_rclone_job(job_id):
@@ -107,18 +140,22 @@ def cancel_rclone_job(job_id):
 
 def poll_for_completion(job_id, stopped_containers, timeout=None):
     timeout_start = time.time()
-    while not rclone_job_completed(job_id):
+    job_output = {}
+    timed_out = False
+    while not job_output.get("finished"):
         print(f"Job {job_id} not done, checking again soon...")
-        time.sleep(10)
+        time.sleep(1)
+        job_output = get_job_status(job_id)
         if timeout is not None:
             if time.time() > timeout_start + timeout:
                 print(f"Job {job_id} has timed out, cancelling...")
                 cancel_rclone_job(job_id)
+                timed_out = True
                 break
     else:
-        # Todo: Check if the job was successful, raise if not.
         print("Job done! Spinning up containers...")
     start_containers(stopped_containers)
+    return (job_output["success"], job_output["error"], timed_out)
 
 
 def run_job(
@@ -144,10 +181,13 @@ def run_job(
     )
     job_id = json.loads(sync_result.output.decode()).get("jobid")
     print(f"Running job: {job_id}")
-    poll_for_completion(job_id, stopped_containers, timeout)
+    job_successful, job_error, job_timed_out = poll_for_completion(
+        job_id, stopped_containers, timeout
+    )
     set_rclone_options(
         destination_remote, destination_directory, transfers=initial_transfers
     )
+    return (job_successful, job_error, job_timed_out)
 
 
 def calculate_time_until_cutoff():
@@ -163,11 +203,75 @@ def read_yaml(jobs_yml_filename):
         return yaml.load(file, Loader=yaml.FullLoader)
 
 
+def sync_remotes(remote_1, remote_2):
+    options = json.dumps(
+        {
+            "main": {
+                "BackupDir": "",
+                "Transfers": 20,
+            }
+        }
+    )
+    rclone_container = CLIENT.containers.get("rclone")
+    command = (
+        f"rclone rc options/set --json '{options}' "
+        f"--rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
+    )
+    print(command)
+    rclone_container.exec_run(command)
+    command_json = json.dumps(
+        {
+            "srcFs": remote_1 + ":",
+            "dstFs": remote_2 + ":",
+            "_async": True,
+        }
+    )
+    command = f"rclone rc sync/sync --json '{command_json}' --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
+    print(command)
+    rclone_container = CLIENT.containers.get("rclone")
+    sync_result = rclone_container.exec_run(command)
+    job_id = json.loads(sync_result.output.decode()).get("jobid")
+    print(f"Running job: {job_id}")
+    return poll_for_completion(job_id, None)
+
+
+def notify_results(
+    notifier: PushoverNotifications, successful_jobs, timed_out_jobs, failed_jobs
+):
+    title = "Rclone"
+    msg = f"{len(successful_jobs)} jobs completed successfully"
+
+    if len(timed_out_jobs) > 0:
+        msg += f", {len(timed_out_jobs)} timed out"
+    if len(failed_jobs) > 0:
+        msg += f", {len(failed_jobs)} failed"
+    msg += "!"
+
+    # List failed jobs if we have any
+    if len(failed_jobs) > 0:
+        msg += "\n\nFailed jobs:"
+    for job in failed_jobs:
+        msg += "\n* " + job.job_name
+
+    # List timed out jobs if we have any
+    if len(timed_out_jobs) > 0:
+        msg += "\n\nTimed out jobs:"
+    for job in timed_out_jobs:
+        msg += "\n* " + job.job_name
+    print(msg)
+    print(notifier.send_notification(title, msg))
+
+
 def main():
-    jobs = read_yaml("/home/pi/Docker/rclone/jobs.yml")
-    for job_name, job_inputs in jobs.items():
+    config = read_yaml("/home/pi/Docker/rclone/jobs.yml")
+    if config.get("pushover"):
+        notifier = PushoverNotifications(
+            config["pushover"]["user_token"], config["pushover"]["app_token"]
+        )
+    job_results = []
+    for job_name, job_inputs in config["jobs"].items():
         seconds_until_cutoff = calculate_time_until_cutoff().seconds
-        run_job(
+        job_successful, job_error, job_timed_out = run_job(
             job_inputs.get("source_directory"),
             job_inputs.get("destination_remote"),
             job_inputs.get("destination_directory"),
@@ -175,6 +279,23 @@ def main():
             timeout=seconds_until_cutoff,
             containers_to_stop=job_inputs.get("containers_to_stop"),
         )
+        job_results.append(
+            JobResult(job_name, job_successful, job_error, job_timed_out)
+        )
+    sync_result = sync_remotes("gdrive_1", "gdrive_2")
+    job_results.append(JobResult("sync_remotes", *sync_result))
+    successful_jobs = []
+    timed_out_jobs = []
+    failed_jobs = []
+    for index, job_result in enumerate(job_results):
+        if job_result.job_successful:
+            successful_jobs.append(job_result)
+        elif job_result.job_timed_out:
+            timed_out_jobs.append(job_result)
+        elif job_result.job_error:
+            failed_jobs.append(job_result)
+    notify_results(notifier, successful_jobs, timed_out_jobs, failed_jobs)
+
     print("DONE")
 
 

@@ -1,6 +1,6 @@
 rc_user="user"
 rc_pass="pass"
-json_fmt='{"main": {"BackupDir": "", "Transfers": 500}}'
+json_fmt='{"main": {"BackupDir": "", "Transfers": 20}}'
 json_str=$(printf "$json_fmt" "$(date +%d_%m_%Y)")
 docker exec rclone rclone rc options/set --json "$json_str" --rc-user=$rc_user --rc-pass=$rc_pass
 #options=$(docker exec rclone rclone rc options/get --rc-user=$rc_user --rc-pass=$rc_pass)

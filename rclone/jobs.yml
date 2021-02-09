@@ -1,38 +1,50 @@
-home_synced:
-  source_directory: /data/synced
-  destination_remote: encrypted_gdrive_1
-  destination_directory: home_synced
-  transfers: 10
-  containers_to_stop:
-    - sonarr
-    - radarr
-    - tautulli
-    - openvpn-transmission_transmission_1
-    - sabnzbd
-  excludes:
-    - /home/pi/synced/plex
-    - /home/pi/synced/rclone
+pushover:
+  user_token: YOUR_USER_TOKEN
+  app_token: YOUR_APP_TOKEN
 
-hdd_videos:
-  source_directory: /data/hdd/videos
-  destination_remote: encrypted_gdrive_1
-  destination_directory: hdd_videos
-  transfers: 1
+jobs:
+  home_synced:
+    source_directory: /data/synced
+    destination_remote: encrypted_gdrive_1
+    destination_directory: home_synced
+    transfers: 10
+    containers_to_stop:
+      - sonarr
+      - radarr
+      - tautulli
+      - openvpn-transmission_transmission_1
+      - sabnzbd
+    excludes:
+      - /home/pi/synced/plex
+      - /home/pi/synced/rclone
 
-wd_torrents_tv:
-  source_directory: /data/wd/torrents/tv
-  destination_remote: encrypted_gdrive_1
-  destination_directory: wd_torrents_tv
-  transfers: 1
+  bad_boi:
+    source_directory: /data/hdd/videosgddsad
+    destination_remote: encrypted_gdrive_1sdadsa
+    destination_directory: hdd_videosdsadsa
+    transfers: 1
 
-wd_torrents_movies:
-  source_directory: /data/wd/torrents/movies
-  destination_remote: encrypted_gdrive_1
-  destination_directory: wd_torrents_movies
-  transfers: 1
+  hdd_videos:
+    source_directory: /data/hdd/videos
+    destination_remote: encrypted_gdrive_1
+    destination_directory: hdd_videos
+    transfers: 1
 
-wd_media:
-  source_directory: /data/wd/media
-  destination_remote: encrypted_gdrive_1
-  destination_directory: wd_media
-  transfers: 1
+  wd_torrents_tv:
+    source_directory: /data/wd/torrents/tv
+    destination_remote: encrypted_gdrive_1
+    destination_directory: wd_torrents_tv
+    transfers: 1
+
+  wd_torrents_movies:
+    source_directory: /data/wd/torrents/movies
+    destination_remote: encrypted_gdrive_1
+    destination_directory: wd_torrents_movies
+    transfers: 1
+
+  wd_media:
+    source_directory: /data/wd/media
+    destination_remote: encrypted_gdrive_1
+    destination_directory: wd_media
+    transfers: 1
+

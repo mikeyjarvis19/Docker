@@ -3,10 +3,11 @@ import logging
 import datetime
 import json
 import time
+import yaml
 
 CLIENT = docker.from_env()
-RCLONE_USER = "user"
-RCLONE_PASS = "pass"
+RCLONE_USER = "pi"
+RCLONE_PASS = "password"
 
 
 def stop_containers(containers_to_stop=None):
@@ -35,9 +36,7 @@ def start_containers(containers_to_start):
 
 def get_rclone_options():
     rclone_container = CLIENT.containers.get("rclone")
-    command = (
-        f"rclone rc options/get --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
-    )
+    command = f"rclone rc options/get --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
     result = rclone_container.exec_run(command)
     options = json.loads(result.output.decode())
     return options
@@ -117,6 +116,7 @@ def poll_for_completion(job_id, stopped_containers, timeout=None):
                 cancel_rclone_job(job_id)
                 break
     else:
+        # Todo: Check if the job was successful, raise if not.
         print("Job done! Spinning up containers...")
     start_containers(stopped_containers)
 
@@ -158,29 +158,23 @@ def calculate_time_until_cutoff():
     return time_delta
 
 
-def main():
-    container_names = [
-        "sonarr",
-        "radarr",
-        "tautulli",
-        "openvpn-transmission_transmission_1",
-    ]
-    run_job(
-        "/data/synced",
-        "encrypted_gdrive_1",
-        "home_synced",
-        transfers=4,
-        containers_to_stop=container_names,
-    )
-    seconds_until_cutoff = calculate_time_until_cutoff().seconds
-    run_job(
-        "/data/hdd/videos",
-        "encrypted_gdrive_1",
-        "hdd_videos",
-        transfers=1,
-        timeout=seconds_until_cutoff,
-    )
+def read_yaml(jobs_yml_filename):
+    with open(jobs_yml_filename) as file:
+        return yaml.load(file, Loader=yaml.FullLoader)
 
+
+def main():
+    jobs = read_yaml("/home/pi/Docker/rclone/jobs.yml")
+    for job_name, job_inputs in jobs.items():
+        seconds_until_cutoff = calculate_time_until_cutoff().seconds
+        run_job(
+            job_inputs.get("source_directory"),
+            job_inputs.get("destination_remote"),
+            job_inputs.get("destination_directory"),
+            transfers=job_inputs.get("transfers"),
+            timeout=seconds_until_cutoff,
+            containers_to_stop=job_inputs.get("containers_to_stop"),
+        )
     print("DONE")
 
 

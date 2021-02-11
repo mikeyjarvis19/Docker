@@ -14,15 +14,10 @@ jobs:
       - tautulli
       - openvpn-transmission_transmission_1
       - sabnzbd
+      - pihole
     excludes:
       - /home/pi/synced/plex
       - /home/pi/synced/rclone
-
-  bad_boi:
-    source_directory: /data/hdd/videosgddsad
-    destination_remote: encrypted_gdrive_1sdadsa
-    destination_directory: hdd_videosdsadsa
-    transfers: 1
 
   hdd_videos:
     source_directory: /data/hdd/videos

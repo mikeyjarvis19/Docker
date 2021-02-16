@@ -1,0 +1,57 @@
+# https://github.com/DoTheEvo/selfhosted-apps-docker/tree/master/nextcloud
+version: '3'
+services:
+
+  nextcloud-db:
+    image: yobasystems/alpine-mariadb:armhf
+    container_name: nextcloud-db
+    hostname: nextcloud-db
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - /home/pi/synced/nextcloud/data-db:/var/lib/mysql
+
+  nextcloud-redis:
+    image: redis:5.0.9-alpine
+    container_name: nextcloud-redis
+    hostname: nextcloud-redis
+    restart: unless-stopped
+
+  nextcloud-app:
+    image: nextcloud:fpm-alpine
+    container_name: nextcloud-app
+    hostname: nextcloud-app
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+    volumes:
+      - /home/pi/synced/nextcloud/data/:/var/www/html
+
+  nextcloud-web:
+    image: nginx:alpine
+    container_name: nextcloud-web
+    hostname: nextcloud-web
+    restart: unless-stopped
+    volumes:
+      - /home/pi/synced/nextcloud/data/:/var/www/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+  nextcloud-cron:
+    image: nextcloud:fpm-alpine
+    container_name: nextcloud-cron
+    hostname: nextcloud-cron
+    restart: unless-stopped
+    volumes:
+      - /home/pi/synced/nextcloud/data/:/var/www/html
+    entrypoint: /cron.sh
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+
+networks:
+  default:
+    external:
+      name: $DOCKER_MY_NETWORK

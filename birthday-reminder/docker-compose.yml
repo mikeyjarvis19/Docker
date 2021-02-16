@@ -1,0 +1,8 @@
+version: "3.7"
+services:
+  birthday-reminder:
+    image: mikeyjarvis19/birthday-reminder:latest
+    container_name: birthday-reminder
+    restart: unless-stopped
+    volumes:
+      - /home/pi/synced/birthday-reminder/credentials:/birthday-reminder/credentials

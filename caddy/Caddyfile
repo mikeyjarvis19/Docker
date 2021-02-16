@@ -1,7 +1,14 @@
-test.{$MY_DOMAIN} {
-    reverse_proxy whoami:80
+nextcloud.{$MY_DOMAIN} {
+    reverse_proxy nextcloud-web:80
+    header Strict-Transport-Security max-age=31536000;
+    redir /.well-known/carddav /remote.php/carddav 301
+    redir /.well-known/caldav /remote.php/caldav 301
 }
 
-another.{$MY_DOMAIN} {
-    reverse_proxy nginx:80
-}
+#test.{$MY_DOMAIN} {
+#    reverse_proxy whoami:80
+#}
+
+#another.{$MY_DOMAIN} {
+#    reverse_proxy nginx:80
+#}

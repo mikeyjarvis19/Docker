@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+
+  whoami:
+    image: "containous/whoami"
+    container_name: "whoami"
+    hostname: "whoami"
+
+networks:
+  default:
+    external:
+      name: $DOCKER_MY_NETWORK

@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+
+  caddy:
+    image: caddy
+    container_name: caddy
+    hostname: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - MY_DOMAIN
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /home/pi//synced/caddy/data:/data
+      - /home/pi/synced/caddy/config:/config
+
+networks:
+  default:
+    external:
+      name: $DOCKER_MY_NETWORK

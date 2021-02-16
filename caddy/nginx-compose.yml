@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    hostname: nginx
+
+networks:
+  default:
+    external:
+      name: $DOCKER_MY_NETWORK

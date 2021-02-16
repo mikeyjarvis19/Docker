@@ -1,0 +1,7 @@
+test.{$MY_DOMAIN} {
+    reverse_proxy whoami:80
+}
+
+another.{$MY_DOMAIN} {
+    reverse_proxy nginx:80
+}

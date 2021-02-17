@@ -15,6 +15,7 @@ jobs:
       - openvpn-transmission_transmission_1
       - sabnzbd
       - pihole
+      - jackett
     excludes:
       - /home/pi/synced/plex
       - /home/pi/synced/rclone

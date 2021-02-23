@@ -44,3 +44,15 @@ jobs:
     destination_directory: wd_media
     transfers: 1
 
+  wd_nextcloud:
+    source_directory: /data/wd/nextcloud
+    destination_remote: encrypted_gdrive_1
+    destination_directory: wd_nextcloud
+    transfers: 5
+    containers_to_stop:
+      - nextcloud-db
+      - nextcloud-redis
+      - nextcloud-app
+      - nextcloud-web
+      - nextcloud-cron
+

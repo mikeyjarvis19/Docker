@@ -28,7 +28,7 @@ services:
       - nextcloud-db
       - nextcloud-redis
     volumes:
-      - /home/pi/synced/nextcloud/data/:/var/www/html
+      - /media/wd/nextcloud/data/:/var/www/html
 
   nextcloud-web:
     image: nginx:alpine
@@ -36,7 +36,7 @@ services:
     hostname: nextcloud-web
     restart: unless-stopped
     volumes:
-      - /home/pi/synced/nextcloud/data/:/var/www/html:ro
+      - /media/wd/nextcloud/data/:/var/www/html:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
 
   nextcloud-cron:
@@ -45,7 +45,7 @@ services:
     hostname: nextcloud-cron
     restart: unless-stopped
     volumes:
-      - /home/pi/synced/nextcloud/data/:/var/www/html
+      - /media/wd/nextcloud/data/:/var/www/html
     entrypoint: /cron.sh
     depends_on:
       - nextcloud-db

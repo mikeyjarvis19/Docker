@@ -1,0 +1,16 @@
+version: "2.1"
+services:
+  sabnzbd:
+    image: ghcr.io/linuxserver/sabnzbd
+    container_name: sabnzbd
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - /home/pi/synced/sabnzbd/config:/config
+      - /media/wd/usenet:/data/usenet
+    ports:
+      - 8070:8080
+      - 9090:9090
+    restart: unless-stopped

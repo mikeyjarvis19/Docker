@@ -282,6 +282,8 @@ def main():
         job_results.append(
             JobResult(job_name, job_successful, job_error, job_timed_out)
         )
+        if job_timed_out:
+            break
     sync_result = sync_remotes("gdrive_1", "gdrive_2")
     job_results.append(JobResult("sync_remotes", *sync_result))
     successful_jobs = []

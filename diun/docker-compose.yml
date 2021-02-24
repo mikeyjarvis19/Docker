@@ -1,0 +1,23 @@
+version: "3.5"
+
+services:
+  diun:
+    image: crazymax/diun:latest
+    container_name: diun
+    volumes:
+      - "/home/pi/synced/diun/data:/data"
+      - "/home/pi/synced/diun/config:/etc/diun"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - "TZ=Europe/London"
+      - "LOG_LEVEL=info"
+      - "LOG_JSON=false"
+      - "DIUN_WATCH_WORKERS=20"
+      - "DIUN_WATCH_SCHEDULE=0 */6 * * *"
+      - "DIUN_PROVIDERS_DOCKER=true"
+      - "DIUN_PROVIDERS_DOCKER_WATCHSTOPPED=true"
+      - "DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true"
+    labels:
+      - "diun.enable=true"
+      - "diun.watch_repo=true"
+    restart: always

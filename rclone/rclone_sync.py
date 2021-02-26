@@ -144,7 +144,7 @@ def poll_for_completion(job_id, stopped_containers, timeout=None):
     timed_out = False
     while not job_output.get("finished"):
         print(f"Job {job_id} not done, checking again soon...")
-        time.sleep(1)
+        time.sleep(10)
         job_output = get_job_status(job_id)
         if timeout is not None:
             if time.time() > timeout_start + timeout:

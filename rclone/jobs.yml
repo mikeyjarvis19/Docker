@@ -57,7 +57,7 @@ jobs:
 #      - nextcloud-cron
 
   wd_linuxserver_nextcloud:
-    source_directory: /media/wd/linuxserver-nextcloud
+    source_directory: /data/wd/linuxserver-nextcloud
     destination_remote: encrypted_gdrive_1
     destination_directory: wd_linuxserver_nextcloud
     transfers: 5

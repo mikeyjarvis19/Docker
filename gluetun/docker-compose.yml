@@ -1,0 +1,18 @@
+version: "3.7"
+
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    environment:
+      - VPNSP=private internet access
+      - REGION=UK London
+      - OPENVPN_USER=${VPN_USER}
+      - OPENVPN_PASSWORD=${VPN_PASSWORD}
+    volumes:
+      - /home/pi/synced/gluetun:/gluetun
+    ports:
+      - 9117:9117
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped

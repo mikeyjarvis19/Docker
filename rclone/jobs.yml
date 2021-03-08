@@ -44,6 +44,15 @@ jobs:
     destination_directory: wd_media
     transfers: 1
 
+  wd_linuxserver_nextcloud:
+    source_directory: /data/wd/linuxserver-nextcloud
+    destination_remote: encrypted_gdrive_1
+    destination_directory: wd_linuxserver_nextcloud
+    transfers: 5
+    containers_to_stop:
+      - nextcloud
+      - nextcloud_db
+
 #  wd_nextcloud:
 #    source_directory: /data/wd/nextcloud
 #    destination_remote: encrypted_gdrive_1
@@ -55,13 +64,3 @@ jobs:
 #      - nextcloud-app
 #      - nextcloud-web
 #      - nextcloud-cron
-
-  wd_linuxserver_nextcloud:
-    source_directory: /data/wd/linuxserver-nextcloud
-    destination_remote: encrypted_gdrive_1
-    destination_directory: wd_linuxserver_nextcloud
-    transfers: 5
-    containers_to_stop:
-      - nextcloud
-      - nextcloud_db
-

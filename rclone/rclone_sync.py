@@ -1,14 +1,51 @@
 import docker
 import logging
+from logging.handlers import RotatingFileHandler
 import datetime
 import json
 import time
 import yaml
+import sys
 import requests
+import pathlib
 
 CLIENT = docker.from_env()
 RCLONE_USER = "user"
 RCLONE_PASS = "pass"
+
+
+class LogSetup:
+    formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(message)s", datefmt="%d-%m-%Y %H:%M:%S"
+    )
+    parent_directory = pathlib.Path(__file__).parent
+    log_file = pathlib.Path(parent_directory, "rclone_sync.log")
+
+    @classmethod
+    def get_console_handler(self):
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(self.formatter)
+        return console_handler
+
+    @classmethod
+    def get_file_handler(self):
+        file_handler = RotatingFileHandler(
+            self.log_file, maxBytes=1000000, backupCount=0
+        )
+        file_handler.setFormatter(self.formatter)
+        return file_handler
+
+    @classmethod
+    def get_logger(self, logger_name):
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(self.get_console_handler())
+        logger.addHandler(self.get_file_handler())
+        logger.propagate = False
+        return logger
+
+
+logger = LogSetup.get_logger("rclone")
 
 
 class PushoverNotifications:
@@ -25,8 +62,8 @@ class PushoverNotifications:
             "message": message,
         }
         response = requests.post(self.url, data=data)
-        logging.info(
-            f"Retrieved response code: '{response.status_code}' from '{self.url}'"
+        logger.info(
+            "Recieved response code: %s from %s", response.status_code, self.url
         )
         return response.status_code
 
@@ -43,33 +80,33 @@ class JobResult:
 
 
 def stop_containers(containers_to_stop=None):
-    logging.info("Stopping containers: %s", containers_to_stop)
+    logger.info("Stopping containers: %s", containers_to_stop)
     running_containers = CLIENT.containers.list()
     stopped_containers = []
     if not containers_to_stop:
         return stopped_containers
     for container in running_containers:
         if container.name in containers_to_stop:
-            logging.info("Stopping container: %s", container.name)
-            print("Stopping container:", container.name)
+            logger.info("Stopping container: %s", container.name)
             container.stop()
             stopped_containers.append(container.name)
     return stopped_containers
 
 
 def start_containers(containers_to_start):
-    logging.info("Starting containers: %s", containers_to_start)
+    logger.info("Starting containers: %s", containers_to_start)
     if containers_to_start:
         for container_name in containers_to_start:
             container = CLIENT.containers.get(container_name)
-            logging.info("Starting container: %s", container_name)
-            print("Starting container:", container_name)
+            logger.info("Starting container: %s", container_name)
             container.start()
 
 
 def get_rclone_options():
     rclone_container = CLIENT.containers.get("rclone")
-    command = f"rclone rc options/get --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
+    command = (
+        f"rclone rc options/get --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
+    )
     result = rclone_container.exec_run(command)
     options = json.loads(result.output.decode())
     return options
@@ -78,6 +115,7 @@ def get_rclone_options():
 def set_rclone_options(destination_remote, destination_folder, transfers=1):
     """
     Set options for rc instance.
+
     :param str destination_folder: Target folder in root of remote.
     :param int transfers: Max number of simultaneous transfers.
     :param int max_duration: Max job runtime in NS.
@@ -98,7 +136,7 @@ def set_rclone_options(destination_remote, destination_folder, transfers=1):
         f"rclone rc options/set --json '{options}' "
         f"--rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
     )
-    print(command)
+    logger.debug(command)
     return rclone_container.exec_run(command)
 
 
@@ -111,7 +149,7 @@ def rclone_sync(source_directory, destination_remote, destination_folder):
         }
     )
     command = f"rclone rc sync/sync --json '{command_json}' --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
-    print(command)
+    logger.debug(command)
     rclone_container = CLIENT.containers.get("rclone")
     return rclone_container.exec_run(command)
 
@@ -143,17 +181,17 @@ def poll_for_completion(job_id, stopped_containers, timeout=None):
     job_output = {}
     timed_out = False
     while not job_output.get("finished"):
-        print(f"Job {job_id} not done, checking again soon...")
+        logger.debug("Job %s not done, checking again soon...", job_id)
         time.sleep(10)
         job_output = get_job_status(job_id)
         if timeout is not None:
             if time.time() > timeout_start + timeout:
-                print(f"Job {job_id} has timed out, cancelling...")
+                logger.info(f"Job %s has timed out, cancelling...", job_id)
                 cancel_rclone_job(job_id)
                 timed_out = True
                 break
     else:
-        print("Job done! Spinning up containers...")
+        logger.info("Job done! Spinning up containers...")
     start_containers(stopped_containers)
     return (job_output["success"], job_output["error"], timed_out)
 
@@ -166,8 +204,12 @@ def run_job(
     timeout=None,
     containers_to_stop=None,
 ):
-    print(
-        f"Starting job, src: {source_directory}, dest: {destination_remote}:{destination_directory}, timeout: {timeout}"
+    logger.info(
+        f"Starting job, src: %s, dest: %s:%s, timeout: %s",
+        source_directory,
+        destination_remote,
+        destination_directory,
+        timeout,
     )
     initial_transfers = get_rclone_options()["main"]["Transfers"]
     stopped_containers = stop_containers(containers_to_stop)
@@ -180,7 +222,7 @@ def run_job(
         source_directory, destination_remote, destination_directory
     )
     job_id = json.loads(sync_result.output.decode()).get("jobid")
-    print(f"Running job: {job_id}")
+    logger.info("Running job: %s", job_id)
     job_successful, job_error, job_timed_out = poll_for_completion(
         job_id, stopped_containers, timeout
     )
@@ -217,7 +259,7 @@ def sync_remotes(remote_1, remote_2):
         f"rclone rc options/set --json '{options}' "
         f"--rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
     )
-    print(command)
+    logger.debug(command)
     rclone_container.exec_run(command)
     command_json = json.dumps(
         {
@@ -227,20 +269,28 @@ def sync_remotes(remote_1, remote_2):
         }
     )
     command = f"rclone rc sync/sync --json '{command_json}' --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
-    print(command)
+    logger.debug(command)
     rclone_container = CLIENT.containers.get("rclone")
     sync_result = rclone_container.exec_run(command)
     job_id = json.loads(sync_result.output.decode()).get("jobid")
-    print(f"Running job: {job_id}")
+    logger.info("Running job: %s", job_id)
     return poll_for_completion(job_id, None)
 
 
-def notify_results(
-    notifier: PushoverNotifications, successful_jobs, timed_out_jobs, failed_jobs
-):
+def notify_results(notifier: PushoverNotifications, job_results):
     title = "Rclone"
-    msg = f"{len(successful_jobs)} jobs completed successfully"
+    successful_jobs = []
+    timed_out_jobs = []
+    failed_jobs = []
+    for index, job_result in enumerate(job_results):
+        if job_result.job_successful:
+            successful_jobs.append(job_result)
+        elif job_result.job_timed_out:
+            timed_out_jobs.append(job_result)
+        elif job_result.job_error:
+            failed_jobs.append(job_result)
 
+    msg = f"{len(successful_jobs)} jobs completed successfully"
     if len(timed_out_jobs) > 0:
         msg += f", {len(timed_out_jobs)} timed out"
     if len(failed_jobs) > 0:
@@ -258,8 +308,9 @@ def notify_results(
         msg += "\n\nTimed out jobs:"
     for job in timed_out_jobs:
         msg += "\n* " + job.job_name
-    print(msg)
-    print(notifier.send_notification(title, msg))
+
+    logger.info(msg)
+    notifier.send_notification(title, msg)
 
 
 def main():
@@ -286,19 +337,8 @@ def main():
             break
     sync_result = sync_remotes("gdrive_1", "gdrive_2")
     job_results.append(JobResult("sync_remotes", *sync_result))
-    successful_jobs = []
-    timed_out_jobs = []
-    failed_jobs = []
-    for index, job_result in enumerate(job_results):
-        if job_result.job_successful:
-            successful_jobs.append(job_result)
-        elif job_result.job_timed_out:
-            timed_out_jobs.append(job_result)
-        elif job_result.job_error:
-            failed_jobs.append(job_result)
-    notify_results(notifier, successful_jobs, timed_out_jobs, failed_jobs)
-
-    print("DONE")
+    notify_results(notifier, job_results)
+    logger.info("DONE")
 
 
 if __name__ == "__main__":

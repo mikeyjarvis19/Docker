@@ -63,4 +63,16 @@ jobs:
 #      - nextcloud-redis
 #      - nextcloud-app
 #      - nextcloud-web
-#      - nextcloud-cron
+#      - nextcloud-cron#      - nextcloud-cron
+
+#  wd_empty:
+#    source_directory: /data/wd/media/empty
+#    destination_remote: encrypted_gdrive_1
+#    destination_directory: wd_empty
+#    transfers: 1
+#
+#  wd_wdnotempty:
+#    source_directory: /data/wd/media/notempty
+#    destination_remote: encrypted_gdrive_1
+#    destination_directory: wd_notempty
+#    transfers: 1

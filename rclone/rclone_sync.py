@@ -8,10 +8,13 @@ import yaml
 import sys
 import requests
 import pathlib
+import os
+
 
 CLIENT = docker.from_env()
 RCLONE_USER = "user"
 RCLONE_PASS = "pass"
+rclone_container = CLIENT.containers.get("rclone")
 
 
 class LogSetup:
@@ -103,7 +106,6 @@ def start_containers(containers_to_start):
 
 
 def get_rclone_options():
-    rclone_container = CLIENT.containers.get("rclone")
     command = (
         f"rclone rc options/get --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
     )
@@ -131,7 +133,6 @@ def set_rclone_options(destination_remote, destination_folder, transfers=1):
             }
         }
     )
-    rclone_container = CLIENT.containers.get("rclone")
     command = (
         f"rclone rc options/set --json '{options}' "
         f"--rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
@@ -150,7 +151,6 @@ def rclone_sync(source_directory, destination_remote, destination_folder):
     )
     command = f"rclone rc sync/sync --json '{command_json}' --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
     logger.debug(command)
-    rclone_container = CLIENT.containers.get("rclone")
     return rclone_container.exec_run(command)
 
 
@@ -160,7 +160,6 @@ def get_job_status(job_id):
         f"rclone rc --json '{command_json}' job/status "
         f"--rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
     )
-    rclone_container = CLIENT.containers.get("rclone")
     output = json.loads(rclone_container.exec_run(command).output.decode())
     return output
 
@@ -171,7 +170,6 @@ def cancel_rclone_job(job_id):
         f"rclone rc --json '{command_json}' job/stop "
         f"--rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
     )
-    rclone_container = CLIENT.containers.get("rclone")
     output = json.loads(rclone_container.exec_run(command).output.decode())
     return output.get("finished")
 
@@ -196,6 +194,14 @@ def poll_for_completion(job_id, stopped_containers, timeout=None):
     return (job_output["success"], job_output["error"], timed_out)
 
 
+def directory_is_empty(source_directory):
+    is_empty = False
+    if os.path.exists(source_directory) and os.path.isdir(source_directory):
+        if not os.listdir(source_directory):
+            is_empty = True
+    return is_empty
+
+
 def run_job(
     source_directory,
     destination_remote,
@@ -211,6 +217,13 @@ def run_job(
         destination_directory,
         timeout,
     )
+    # Todo: Enable this when I figure out how to check directories on the
+    #  container, not the host
+    # if directory_is_empty(source_directory):
+    #     logger.warning(
+    #         "Source directory %s is empty, skipping sync", source_directory
+    #     )
+    #     return False, "Source directory empty", False
     initial_transfers = get_rclone_options()["main"]["Transfers"]
     stopped_containers = stop_containers(containers_to_stop)
     set_rclone_options(
@@ -254,7 +267,6 @@ def sync_remotes(remote_1, remote_2):
             }
         }
     )
-    rclone_container = CLIENT.containers.get("rclone")
     command = (
         f"rclone rc options/set --json '{options}' "
         f"--rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
@@ -270,7 +282,6 @@ def sync_remotes(remote_1, remote_2):
     )
     command = f"rclone rc sync/sync --json '{command_json}' --rc-user={RCLONE_USER} --rc-pass={RCLONE_PASS}"
     logger.debug(command)
-    rclone_container = CLIENT.containers.get("rclone")
     sync_result = rclone_container.exec_run(command)
     job_id = json.loads(sync_result.output.decode()).get("jobid")
     logger.info("Running job: %s", job_id)

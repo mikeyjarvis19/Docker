@@ -3,6 +3,7 @@ version: '2'
 services:
   portainer:
     image: portainer/portainer-ce
+    container_name: portainer
     command: -H unix:///var/run/docker.sock
     restart: always
     ports:

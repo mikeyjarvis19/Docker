@@ -9,6 +9,7 @@ services:
       - REGION=UK London
       - OPENVPN_USER=${VPN_USER}
       - OPENVPN_PASSWORD=${VPN_PASSWORD}
+      - TZ=Europe/London
     volumes:
       - /home/pi/synced/gluetun:/gluetun
     cap_add:

@@ -8,7 +8,6 @@ import yaml
 import sys
 import requests
 import pathlib
-import os
 
 
 CLIENT = docker.from_env()
@@ -195,11 +194,12 @@ def poll_for_completion(job_id, stopped_containers, timeout=None):
 
 
 def directory_is_empty(source_directory):
-    is_empty = False
-    if os.path.exists(source_directory) and os.path.isdir(source_directory):
-        if not os.listdir(source_directory):
-            is_empty = True
-    return is_empty
+    directory_ls = rclone_container.exec_run(
+        f"ls {source_directory}"
+    ).output.decode()
+    if not directory_ls:
+        return True
+    return False
 
 
 def run_job(
@@ -217,13 +217,11 @@ def run_job(
         destination_directory,
         timeout,
     )
-    # Todo: Enable this when I figure out how to check directories on the
-    #  container, not the host
-    # if directory_is_empty(source_directory):
-    #     logger.warning(
-    #         "Source directory %s is empty, skipping sync", source_directory
-    #     )
-    #     return False, "Source directory empty", False
+    if directory_is_empty(source_directory):
+        logger.warning(
+            "Source directory %r is empty, skipping sync", source_directory
+        )
+        return False, "Source directory empty", False
     initial_transfers = get_rclone_options()["main"]["Transfers"]
     stopped_containers = stop_containers(containers_to_stop)
     set_rclone_options(

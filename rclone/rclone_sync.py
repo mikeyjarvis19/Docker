@@ -310,7 +310,7 @@ def notify_results(notifier: PushoverNotifications, job_results):
     if len(failed_jobs) > 0:
         msg += "\n\nFailed jobs:"
     for job in failed_jobs:
-        msg += "\n* " + job.job_name
+        msg += "\n* " + f"{job.job_name} - {job.job_error}"
 
     # List timed out jobs if we have any
     if len(timed_out_jobs) > 0:

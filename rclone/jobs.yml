@@ -17,6 +17,15 @@ jobs:
       - pihole
       - jackett
 
+  wd_linuxserver_nextcloud:
+    source_directory: /data/wd/linuxserver-nextcloud
+    destination_remote: onedrive_encrypted
+    destination_directory: wd_linuxserver_nextcloud
+    transfers: 5
+    containers_to_stop:
+      - nextcloud
+      - nextcloud_db
+
 #  hdd_videos:
 #    source_directory: /data/hdd/videos
 #    destination_remote: encrypted_gdrive_1
@@ -41,14 +50,6 @@ jobs:
 #    destination_directory: wd_media
 #    transfers: 1
 #
-#  wd_linuxserver_nextcloud:
-#    source_directory: /data/wd/linuxserver-nextcloud
-#    destination_remote: encrypted_gdrive_1
-#    destination_directory: wd_linuxserver_nextcloud
-#    transfers: 5
-#    containers_to_stop:
-#      - nextcloud
-#      - nextcloud_db
 
 #  wd_nextcloud:
 #    source_directory: /data/wd/nextcloud
@@ -64,12 +65,12 @@ jobs:
 
 #  wd_empty:
 #    source_directory: /data/wd/media/empty
-#    destination_remote: encrypted_gdrive_1
+#    destination_remote: encrypted_gdrive_personal
 #    destination_directory: wd_empty
 #    transfers: 1
 #
 #  wd_wdnotempty:
 #    source_directory: /data/wd/media/notempty
-#    destination_remote: encrypted_gdrive_1
+#    destination_remote: encrypted_gdrive_personal
 #    destination_directory: wd_notempty
 #    transfers: 1

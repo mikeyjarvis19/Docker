@@ -19,6 +19,11 @@ nextcloud.{$MY_DOMAIN} {
     redir /.well-known/webfinger /public.php?service=webfinger 301
 }
 
+ombi.{$MY_DOMAIN} {
+    reverse_proxy ombi:3579
+    header Strict-Transport-Security max-age=31536000;
+}
+
 #test.{$MY_DOMAIN} {
 #    reverse_proxy whoami:80
 #}

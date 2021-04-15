@@ -13,3 +13,8 @@ services:
     ports:
       - 3579:3579
     restart: unless-stopped
+
+networks:
+  default:
+    external:
+      name: $DOCKER_MY_NETWORK

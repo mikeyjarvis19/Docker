@@ -16,6 +16,7 @@ jobs:
       - sabnzbd
       - pihole
       - jackett
+      - ombi
 
   wd_linuxserver_nextcloud:
     source_directory: /data/wd/linuxserver-nextcloud

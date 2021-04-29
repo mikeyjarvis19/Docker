@@ -18,15 +18,20 @@ jobs:
       - jackett
       - ombi
 
-  wd_linuxserver_nextcloud:
-    source_directory: /data/wd/linuxserver-nextcloud
+  wd_photos:
+    source_directory: /data/wd/linuxserver-nextcloud/data/username/files/Photos
     destination_remote: onedrive_encrypted
-    destination_directory: wd_linuxserver_nextcloud
+    destination_directory: wd_photos
     transfers: 5
     containers_to_stop:
       - nextcloud
       - nextcloud_db
 
+  nextcloud_contacts:
+    source_directory: /data/wd/linuxserver-nextcloud/data/username/files/.Contacts-Backup
+    destination_remote: onedrive_encrypted
+    destination_directory: nextcloud_contacts
+    transfers: 5
 #  hdd_videos:
 #    source_directory: /data/hdd/videos
 #    destination_remote: encrypted_gdrive_1

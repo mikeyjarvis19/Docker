@@ -12,7 +12,7 @@ jobs:
       - sonarr
       - radarr
       - tautulli
-      - openvpn-transmission_transmission_1
+      - transmission
       - sabnzbd
       - pihole
       - jackett

@@ -344,8 +344,8 @@ def main():
         )
         if job_timed_out:
             break
-    sync_result = sync_remotes("gdrive_1", "gdrive_2")
-    job_results.append(JobResult("sync_remotes", *sync_result))
+    # sync_result = sync_remotes("gdrive_1", "gdrive_2")
+    # job_results.append(JobResult("sync_remotes", *sync_result))
     notify_results(notifier, job_results)
     logger.info("DONE")
 

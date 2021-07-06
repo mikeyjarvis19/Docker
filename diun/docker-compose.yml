@@ -13,7 +13,7 @@ services:
       - "LOG_LEVEL=info"
       - "LOG_JSON=false"
       - "DIUN_WATCH_WORKERS=20"
-      - "DIUN_WATCH_SCHEDULE=0 17 * * 5 "
+      - "DIUN_WATCH_SCHEDULE=0 17 1 * *"
       - "DIUN_PROVIDERS_DOCKER=true"
       - "DIUN_PROVIDERS_DOCKER_WATCHSTOPPED=true"
       - "DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true"

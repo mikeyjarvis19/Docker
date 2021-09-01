@@ -9,5 +9,8 @@ declare -a StringArray=("gluetun" "transmission" "jackett" "sabnzbd"
 for val in "${StringArray[@]}"; do
   echo "Updating container for $val"
   cd /home/pi/Docker/$val
-  docker-compose pull && docker-compose up -d --remove-orphans
+  docker-compose pull 
+  docker-compose up -d --remove-orphans
 done
+echo "Pruning docker images"
+docker image prune -a -f

@@ -18,6 +18,7 @@ jobs:
       - jackett
       - ombi
       - bazarr
+      - heimdall
 
   wd_photos:
     source_directory: /data/wd/linuxserver-nextcloud/data/username/files/Photos

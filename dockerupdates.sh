@@ -2,7 +2,7 @@
  
 # Declare a string array with type
 declare -a StringArray=("gluetun" "transmission" "jackett" "sabnzbd" 
-"sonarr" "radarr" "bazarr" "portainer" "caddy" "ddclient" "linuxserver-nextcloud"
+"sonarr" "radarr" "bazarr" "portainer" "heimdall" "caddy" "ddclient" "linuxserver-nextcloud"
 "ombi" "rclone" "tautulli" "diun")
  
 # Read the array values with space

@@ -17,6 +17,7 @@ jobs:
       - pihole
       - jackett
       - ombi
+      - bazarr
 
   wd_photos:
     source_directory: /data/wd/linuxserver-nextcloud/data/username/files/Photos
